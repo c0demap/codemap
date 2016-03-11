@@ -23,13 +23,9 @@ def IDA_State():
 
 # batch function break point script - daehee
 def Functions(start=None, end=None):
-    if not start:
-        start = cvar.inf.minEA
-    if not end:
-        end = cvar.inf.maxEA
-    chunk = get_fchunk(start)
-    if not chunk:
-        chunk = get_next_fchunk(start)
+    start = start or cvar.inf.minEA
+    end = end or cvar.inf.maxEA
+    chunk = get_fchunk(start) or get_next_fchunk(start)
     while chunk and chunk.startEA < end and (chunk.flags & FUNC_TAIL) != 0:
         chunk = get_next_fchunk(chunk.startEA)
     func = chunk
@@ -69,7 +65,7 @@ class IDAHook(DBG_Hooks):
               (pid, tid, ea, code))
 
     def dbg_bpt(self, tid, ea):
-        if codemap.pause is True:
+        if codemap.pause:
             return 0    # stop visualizing
 
         codemap.set_data()
@@ -107,7 +103,7 @@ def SetRangeBP():
     end_addr = int(end_addr.replace('0x', ''), 16)
 
     for e in Heads(start_addr, end_addr):
-        if get_bpt(e, bpt_t()) is False:
+        if not get_bpt(e, bpt_t()):
             add_bpt(e, 0, BPT_SOFT)
         else:
             del_bpt(e)
@@ -128,7 +124,7 @@ def SetFunctionBP():
         if e.startEA <= ea and ea <= e.endEA:
             target = e.startEA
 
-    if target != 0:
+    if target:
         for e in FuncItems(target):
             if get_bpt(e, bpt_t()) is False:
                 add_bpt(e, 0, BPT_SOFT)
@@ -149,14 +145,14 @@ def StartTracing():
         print 'IDA debugger not running'
         return
 
-    if codemap.start is True:
+    if codemap.start:
         codemap.pause = not codemap.pause
         print 'Codemap Paused? : ', codemap.pause
-        if codemap.pause is False:    # resume tracing
-            continue_process()
-        else:
+        if codemap.pause:    # resume tracing
             codemap.db_insert()
             suspend_process()
+        else:
+            continue_process()
         return
 
     codemap.init_arch()
@@ -172,7 +168,7 @@ def StartTracing():
     # set default SQL
     if codemap.arch.name == 'x86':
         codemap.query = "select eip from trace{0}".format(codemap.uid)
-    if codemap.arch.name == 'x64':
+    elif codemap.arch.name == 'x64':
         codemap.query = "select rip from trace{0}".format(codemap.uid)
 
     # if no baseaddr is configured then 0
