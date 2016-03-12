@@ -185,7 +185,7 @@ class Codemap(object):
                     state_cols += 'm_' + self.arch.reg_list[i] + ', '
             state_cols += ')'
 
-            lines = ', '.join(':{0}, :m_{0}'.format(reg) for reg in self_arch_reg_list)
+            lines = ', '.join(':{0}, :m_{0}'.format(reg) for reg in self.arch.reg_list)
             state_vals = 'VALUES({})'.format(lines)
 
             state_insert = ' '.join(state_insert, state_cols, state_vals)
