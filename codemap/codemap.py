@@ -185,17 +185,10 @@ class Codemap(object):
                     state_cols += 'm_' + self.arch.reg_list[i] + ', '
             state_cols += ')'
 
-            state_vals = 'VALUES('
-            for i in range(0, len(self.arch.reg_list)):
-                if(i == len(self.arch.reg_list) - 1):
-                    state_vals += ":" + self.arch.reg_list[i] + ', '
-                    state_vals += ":m_" + self.arch.reg_list[i]
-                else:
-                    state_vals += ":" + self.arch.reg_list[i] + ', '
-                    state_vals += ":m_" + self.arch.reg_list[i] + ', '
-            state_vals += ')'
+            lines = ', '.join(':{0}, :m_{0}'.format(reg) for reg in self_arch_reg_list)
+            state_vals = 'VALUES({})'.format(lines)
 
-            state_insert = state_insert + ' ' + state_cols + ' ' + state_vals
+            state_insert = ' '.join(state_insert, state_cols, state_vals)
             with self.thread_lock:
                 self.sqlite_cursor.executemany(
                     state_insert, self.bpevent_buffer)
@@ -281,8 +274,7 @@ class BasicArchitecture(object):
 
 class X86(BasicArchitecture):
     name = "x86"
-    reg_list = ['eip', 'eax', 'ebx', 'ecx', 'edx', 'esi',
-                'edi', 'ebp', 'esp', 'arg1', 'arg2', 'arg3', 'arg4']
+    reg_list = 'eip eax ebx ecx edx esi edi ebp esp arg1 arg2 arg3 arg4'.split()
 
     def __init__(self):
         self.reg = {}
