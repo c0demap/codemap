@@ -29,6 +29,7 @@ class Codemap(object):
         self.func_min_size = 16
         self.start = False
         self.pause = False
+        self.autotrace = False
         self.data = ''
         self.mem_size = 48
         self.base = 0
@@ -267,6 +268,9 @@ class X86(BasicArchitecture):
     # x86 overrides set_reg for integer version? -> maybe
     def set_reg(self):
         for i in self.reg_list:
+            if 'ip' in i:
+                self.reg[i] = (idc.GetRegValue(i) & 0xfffff000)
+                continue
             if 'arg' not in i:
                 self.reg[i] = idc.GetRegValue(i)
 

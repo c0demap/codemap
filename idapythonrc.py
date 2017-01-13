@@ -71,14 +71,15 @@ class IDAHook(DBG_Hooks):
               (pid, tid, ea, code))
 
     def dbg_bpt(self, tid, ea):
-        if codemap.pause is True:
-            return 0    # stop visualizing
+        print 'break!'
+        suspend_process()
+        return -1    # stop visualizing
 
+    def dbg_step_into(self):
         codemap.set_data()
         codemap.db_insert_queue()
-        continue_process()                  # continue
-        return 0    # no warning
-
+        request_step_into()     
+        return 0 
 
 def hook_ida():
     global debughook
@@ -155,7 +156,7 @@ def StartTracing():
         codemap.pause = not codemap.pause
         print 'Codemap Paused? : ', codemap.pause
         if codemap.pause is False:    # resume tracing
-            continue_process()
+            step_into()
         else:
             codemap.db_insert()
             suspend_process()
@@ -195,7 +196,8 @@ def StartTracing():
     webbrowser.open(result)
     print 'start tracing...'
     codemap.start = True
-    continue_process()
+    codemap.autotrace = True
+    step_into()
 
 
 '''
@@ -285,4 +287,4 @@ print 'ALT-2 : Set Function BP'
 print 'ALT-3 : Set Range BP'
 print 'ALT-4 : Create/Setup Module BP'
 print 'ALT-5 : Connect Codemap Graph with IDA'
-print 'Codemap Python Plugin is ready. enjoy. - by daehee'
+print 'Codemap Python Plugin is ready..! enjoy. - by daehee'
